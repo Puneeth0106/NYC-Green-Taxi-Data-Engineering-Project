@@ -1,0 +1,74 @@
+{
+    "name": "Master Pipeline",
+    "properties": {
+        "activities": [
+            {
+                "name": "Create silver parquet tables dynamic",
+                "type": "ExecutePipeline",
+                "dependsOn": [],
+                "policy": {
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "2_pl_create_nyc_taxi_csv_dynamic_usp",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true
+                }
+            },
+            {
+                "name": "Create silver nyc_trip_data_green",
+                "type": "ExecutePipeline",
+                "dependsOn": [],
+                "policy": {
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "3_pl_create_silver_nyc_trip_data_green_parquet",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true
+                }
+            },
+            {
+                "name": "Create gold nyc_trip_data_green",
+                "type": "ExecutePipeline",
+                "dependsOn": [
+                    {
+                        "activity": "Create silver parquet tables dynamic",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    },
+                    {
+                        "activity": "Create silver nyc_trip_data_green",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "4_pl_create_Gold_nyc_trip_data_green_parquet",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true
+                }
+            }
+        ],
+        "folder": {
+            "name": "Master"
+        },
+        "annotations": [],
+        "lastPublishTime": "2025-03-01T14:07:08Z"
+    },
+    "type": "Microsoft.Synapse/workspaces/pipelines"
+}

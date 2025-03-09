@@ -1,0 +1,187 @@
+{
+    "name": "4_pl_create_Gold_nyc_trip_data_green_parquet",
+    "properties": {
+        "activities": [
+            {
+                "name": "Get partition year and month",
+                "type": "Script",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "linkedServiceName": {
+                    "referenceName": "ls_serverless_sql_pool_nyc_taxi_ldw",
+                    "type": "LinkedServiceReference"
+                },
+                "typeProperties": {
+                    "scripts": [
+                        {
+                            "type": "Query",
+                            "text": "select DISTINCT year,month\nfrom silver.vw_trip_data_green\n\n\n"
+                        }
+                    ],
+                    "scriptBlockExecutionTimeout": "02:00:00"
+                }
+            },
+            {
+                "name": "ForEach1",
+                "type": "ForEach",
+                "dependsOn": [
+                    {
+                        "activity": "Get partition year and month",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "items": {
+                        "value": "@activity('Get partition year and month').output.resultSets[0].Rows",
+                        "type": "Expression"
+                    },
+                    "activities": [
+                        {
+                            "name": "Delete Gold trip_data_green_csv Partition",
+                            "type": "Delete",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "dataset": {
+                                    "referenceName": "ds_nyc_taxi_data_dynamic",
+                                    "type": "DatasetReference",
+                                    "parameters": {
+                                        "p_folder_path": {
+                                            "value": "gold/trip_data_green/year=@{item().year}/month=@{item().month}",
+                                            "type": "Expression"
+                                        }
+                                    }
+                                },
+                                "logStorageSettings": {
+                                    "linkedServiceName": {
+                                        "referenceName": "ls_adl_synapsecoursepuneethdl",
+                                        "type": "LinkedServiceReference"
+                                    }
+                                },
+                                "enableLogging": true,
+                                "storeSettings": {
+                                    "type": "AzureBlobFSReadSettings",
+                                    "recursive": true,
+                                    "enablePartitionDiscovery": false
+                                }
+                            }
+                        },
+                        {
+                            "name": "Gold Stored procedure for each partition file",
+                            "type": "SqlServerStoredProcedure",
+                            "dependsOn": [
+                                {
+                                    "activity": "Delete Gold trip_data_green_csv Partition",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "storedProcedureName": "gold.usp_gold_trip_data_green_create_and_drop",
+                                "storedProcedureParameters": {
+                                    "month": {
+                                        "value": {
+                                            "value": "@item().month",
+                                            "type": "Expression"
+                                        },
+                                        "type": "String"
+                                    },
+                                    "year": {
+                                        "value": {
+                                            "value": "@item().year",
+                                            "type": "Expression"
+                                        },
+                                        "type": "String"
+                                    }
+                                }
+                            },
+                            "linkedServiceName": {
+                                "referenceName": "ls_serverless_sql_pool_nyc_taxi_ldw",
+                                "type": "LinkedServiceReference"
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "Create view on the all gold the partitions",
+                "type": "Script",
+                "dependsOn": [
+                    {
+                        "activity": "ForEach1",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "linkedServiceName": {
+                    "referenceName": "ls_serverless_sql_pool_nyc_taxi_ldw",
+                    "type": "LinkedServiceReference"
+                },
+                "typeProperties": {
+                    "scripts": [
+                        {
+                            "type": "NonQuery",
+                            "text": "use nyc_taxi_ldw;"
+                        },
+                        {
+                            "type": "Query",
+                            "text": "drop view if EXISTS gold.vw_trip_data_green \n"
+                        },
+                        {
+                            "type": "NonQuery",
+                            "text": "create view gold.vw_trip_data_green\nAS\nSELECT \n        result.filepath(1) as year,\n        result.filepath(2) as month,\n        result.* \nFrom OPENROWSET(\n        BULK 'gold/trip_data_green/year=*/month=*/*.parquet',\n        Data_source = 'nyc_taxi_raw',\n        Format = 'Parquet'\n)with (\n        borough varchar(20),\n        trip_date Date,\n        trip_day varchar(10),\n        trip_day_weekend_ind VARCHAR(10),\n        card_trip_count SMALLINT,\n        cash_trip_count SMALLINT,\n        Street_hail_trip_count SMALLINT,\n        Despatch_trip_count SMALLINT,\n        trip_duration_minutes INT,\n        trip_distance FLOAT,\n        Total_fare_amount FLOAT\n) as result\n\n"
+                        }
+                    ],
+                    "scriptBlockExecutionTimeout": "02:00:00"
+                }
+            }
+        ],
+        "variables": {
+            "v_folder_path": {
+                "type": "String",
+                "defaultValue": "silver/trip_data_green"
+            }
+        },
+        "folder": {
+            "name": "Child Pipelines"
+        },
+        "annotations": [],
+        "lastPublishTime": "2025-03-01T14:07:04Z"
+    },
+    "type": "Microsoft.Synapse/workspaces/pipelines"
+}

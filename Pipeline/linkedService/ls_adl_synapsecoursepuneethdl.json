@@ -1,0 +1,15 @@
+{
+    "name": "ls_adl_synapsecoursepuneethdl",
+    "type": "Microsoft.Synapse/workspaces/linkedservices",
+    "properties": {
+        "annotations": [],
+        "type": "AzureBlobFS",
+        "typeProperties": {
+            "url": "https://synapsecoursepuneethdl.dfs.core.windows.net/"
+        },
+        "connectVia": {
+            "referenceName": "AutoResolveIntegrationRuntime",
+            "type": "IntegrationRuntimeReference"
+        }
+    }
+}

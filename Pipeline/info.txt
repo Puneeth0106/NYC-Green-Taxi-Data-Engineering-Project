@@ -1,0 +1,6 @@
+selected resource name:		Master Pipeline
+selected resource type:		pipeline
+workspace name:			synapse-course-puneeth-ws
+workspace location:		uksouth
+subscription id:		9b80145a-2148-4e42-9cf5-24f03d5b891e
+time of download (UTC):		Thu, 06 Mar 2025 15:38:24 GMT

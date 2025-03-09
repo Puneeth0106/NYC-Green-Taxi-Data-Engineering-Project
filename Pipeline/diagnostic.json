@@ -1,0 +1,23 @@
+{
+    "now": "2025-03-06T15:38:24.677Z",
+    "perfNow": 6232187.300000012,
+    "diagnosticCorrelation": "f688d0de-7480-4fcd-bb12-4d650225141a",
+    "source": "DownloadSupportFiles",
+    "environment": {
+        "productName": "a365",
+        "buildVersion": "25.0227.03",
+        "environmentType": 9,
+        "resourceName": "synapse-course-puneeth-ws",
+        "resourceRegion": "uksouth",
+        "resourceGroup": "synapse-course-rg",
+        "subscriptionId": "9b80145a-2148-4e42-9cf5-24f03d5b891e",
+        "sessionId": "I+3EtjUD5NmjGqIYDkUu03",
+        "operationId": "4Mys:",
+        "gitType": "live",
+        "loggingKey": "d1a3d7cb-d873-40db-be0a-525bd2bf2e59"
+    },
+    "additionalInfo": {
+        "selectedResource": "Master Pipeline",
+        "selectedResourceType": "pipeline"
+    }
+}
