@@ -134,7 +134,7 @@ Sourced from [NYC Taxi & Limousine Commission (TLC)](https://www.nyc.gov/site/tl
 ---
 
 ## 📈 Power BI Reports - Transforming Data into Action
-### ** Payment Insights Report 💳**
+###  Payment Insights Report 💳
 ![Power Bi](images/Credit_Card_campaign.jpeg)
 💡 Trends in cash vs. credit transactions.  
 💡 Strategies to boost **credit card adoption.**  
